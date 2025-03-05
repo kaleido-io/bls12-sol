@@ -1,4 +1,17 @@
-//SPDX-License-Identifier: MIT OR Apache-2.0
+/*
+ * Copyright © 2025 Kaleido, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
 pragma solidity ^0.8.28;
 
 import {CommonLib} from "./common.sol";
@@ -13,44 +26,35 @@ library Fp2Lib {
     function add(
         CommonLib.Fp2 memory self,
         CommonLib.Fp2 memory other
-    ) internal pure returns (CommonLib.Fp2 memory) {
+    ) internal view returns (CommonLib.Fp2 memory) {
         return CommonLib.Fp2({a: self.a.add(other.a), b: self.b.add(other.b)});
     }
 
     function sub(
         CommonLib.Fp2 memory self,
         CommonLib.Fp2 memory other
-    ) internal pure returns (CommonLib.Fp2 memory) {
+    ) internal view returns (CommonLib.Fp2 memory) {
         return CommonLib.Fp2({a: self.a.sub(other.a), b: self.b.sub(other.b)});
     }
     function neg(
         CommonLib.Fp2 memory self
-    ) internal pure returns (CommonLib.Fp2 memory) {
-        return
-            CommonLib.Fp2({
-                a: FpLib.zero().sub(self.a),
-                b: FpLib.zero().sub(self.b)
-            });
+    ) internal view returns (CommonLib.Fp2 memory) {
+        return CommonLib.Fp2({a: self.a.neg(), b: self.b.neg()});
     }
 
     function mul(
         CommonLib.Fp2 memory a,
         CommonLib.Fp2 memory b
     ) internal view returns (CommonLib.Fp2 memory) {
-        CommonLib.Fp memory non_residue = CommonLib.Fp({
-            a: 0x01ae3a4617c510eac63b05c06ca1493b,
-            b: 0x1a22d9f300f5138f1ef3622fba094800170b5d44300000008508bffffffffffc
-        });
+        // (a+bi)(c+di) = (ac−bd) + (ad+bc)i
 
-        CommonLib.Fp memory v0 = a.a.mul(b.a);
-        CommonLib.Fp memory v1 = a.b.mul(b.b);
+        CommonLib.Fp memory t1 = a.a.mul(b.a);
+        CommonLib.Fp memory t2 = a.b.mul(b.b);
 
-        CommonLib.Fp memory res1 = a.b.add(a.a);
-        res1 = res1.mul(b.a.add(b.b));
-        res1 = res1.sub(v0);
-        res1 = res1.sub(v1);
-        CommonLib.Fp memory res0 = v0.add(v1.mul(non_residue));
-        return CommonLib.Fp2({a: res0, b: res1});
+        // (T1 - T2) + ((c0 + c1) * (r0 + r1) - (T1 + T2))*i
+        CommonLib.Fp memory c0 = t1.sub(t2);
+        CommonLib.Fp memory c1 = a.a.add(a.b).mul(b.a.add(b.b)).sub(t1.add(t2));
+        return CommonLib.Fp2({a: c0, b: c1});
     }
 
     function invert(
@@ -93,7 +97,7 @@ library Fp2Lib {
 
     function mul_by_nonresidue(
         CommonLib.Fp2 memory self
-    ) internal pure returns (CommonLib.Fp2 memory) {
+    ) internal view returns (CommonLib.Fp2 memory) {
         // Multiply c0 + c1*u by u + 1:
         // (c0 + c1*u)(u + 1)
         // = c0 * u + c0 + c1 * u^2 + c1 * u
@@ -105,13 +109,13 @@ library Fp2Lib {
 
     function conjugate(
         CommonLib.Fp2 memory self
-    ) internal pure returns (CommonLib.Fp2 memory) {
+    ) internal view returns (CommonLib.Fp2 memory) {
         return CommonLib.Fp2({a: self.a, b: self.b.neg()});
     }
 
     function frobenius_map(
         CommonLib.Fp2 memory self
-    ) internal pure returns (CommonLib.Fp2 memory) {
+    ) internal view returns (CommonLib.Fp2 memory) {
         // (c0 + c1*u)^p = c0^p + (c1*u)^p
         // and c0^p=c0, c1^p=c1, and u^p = -u, so the result is:
         // c0 - c1
