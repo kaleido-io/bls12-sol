@@ -46,6 +46,12 @@ contract TestFp2Lib {
         return Fp2Lib.mul(a, b);
     }
 
+    function square(
+        CommonLib.Fp2 memory a
+    ) public view returns (CommonLib.Fp2 memory) {
+        return Fp2Lib.square(a);
+    }
+
     function neg(
         CommonLib.Fp2 memory a
     ) public view returns (CommonLib.Fp2 memory) {

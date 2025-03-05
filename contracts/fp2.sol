@@ -27,7 +27,11 @@ library Fp2Lib {
         CommonLib.Fp2 memory self,
         CommonLib.Fp2 memory other
     ) internal view returns (CommonLib.Fp2 memory) {
-        return CommonLib.Fp2({a: self.a.add(other.a), b: self.b.add(other.b)});
+        return
+            CommonLib.Fp2({
+                a: self.a.add(other.a).mod(),
+                b: self.b.add(other.b).mod()
+            });
     }
 
     function sub(

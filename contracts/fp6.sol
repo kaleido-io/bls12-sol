@@ -96,7 +96,7 @@ library Fp6Lib {
         CommonLib.Fp2 memory s1 = ab.add(ab);
 
         // s2 = (self.c0 - self.c1 + self.c2)^2
-        CommonLib.Fp2 memory s2 = self.c0.sub(self.c1).add(self.c2).square();
+        CommonLib.Fp2 memory s2 = (self.c0.sub(self.c1).add(self.c2)).square();
 
         // bc = self.c1 * self.c2
         // s3 = 2 * bc
@@ -217,109 +217,91 @@ library Fp6Lib {
         //                                        - a10 * b21 - a11 * b20 - a20 * b11 - a21 * b10.
         //               = a00 * b00 - a01 * b01 + a10 * (b20 - b21) - a11 * (b20 + b21)
         //                                        + a20 * (b10 - b11) - a21 * (b10 + b11).
-        CommonLib.Fp memory a00b00 = a.c0.a.mul(b.c0.a);
-        CommonLib.Fp memory a01b01 = a.c0.b.mul(b.c0.b);
-        CommonLib.Fp memory b20_sub_b21 = b.c2.a.sub(b.c2.b);
-        CommonLib.Fp memory a10b20_sub_b21 = a.c1.a.sub(b20_sub_b21);
-        CommonLib.Fp memory b20_add_b21 = b.c2.a.add(b.c2.b);
-        CommonLib.Fp memory a11b20_add_b21 = a.c1.b.mul(b20_add_b21);
-        CommonLib.Fp memory b10_sub_b11 = b.c1.a.sub(b.c1.b);
-        CommonLib.Fp memory a20b10_sub_b11 = a.c2.a.mul(b10_sub_b11);
-        CommonLib.Fp memory b10_add_b11 = b.c1.a.add(b.c1.b);
-        CommonLib.Fp memory a21b10_add_b11 = a.c2.b.mul(b10_add_b11);
-
-        CommonLib.Fp memory result_c0_0 = a00b00.sub(a01b01);
-        result_c0_0 = result_c0_0.add(a10b20_sub_b21);
-        result_c0_0 = result_c0_0.sub(a11b20_add_b21);
-        result_c0_0 = result_c0_0.add(a20b10_sub_b11);
-        result_c0_0 = result_c0_0.sub(a21b10_add_b11);
+        CommonLib.Fp memory result_c0_0 = a
+            .c0
+            .a
+            .mul(b.c0.a)
+            .sub(a.c0.b.mul(b.c0.b))
+            .add(a.c1.a.mul(b.c2.a))
+            .sub(a.c1.b.mul(b.c2.b))
+            .add(a.c2.a.mul(b.c1.a))
+            .sub(a.c2.b.mul(b.c1.b))
+            .sub(a.c1.a.mul(b.c2.b))
+            .sub(a.c1.b.mul(b.c2.a))
+            .sub(a.c2.a.mul(b.c1.b))
+            .sub(a.c2.b.mul(b.c1.a));
 
         //   result_c0_1 = a00 * b01 + a01 * b00 + a10 * b21 + a11 * b20 + a20 * b11 + a21 * b10
         //                                        + a10 * b20 - a11 * b21 + a20 * b10 - a21 * b11.
         //               = a00 * b01 + a01 * b00 + a10 * (b20 + b21) + a11 * (b20 - b21)
         //                                        + a20 * (b10 + b11) + a21 * (b10 - b11).
-        CommonLib.Fp memory a00b01 = a.c0.a.mul(b.c0.b);
-        CommonLib.Fp memory a01b00 = a.c0.b.mul(b.c0.a);
-        b20_add_b21 = b.c2.a.add(b.c2.b);
-        CommonLib.Fp memory a10b20_add_b21 = a.c1.a.mul(b20_add_b21);
-        b20_sub_b21 = b.c2.a.sub(b.c2.b);
-        CommonLib.Fp memory a11b20_sub_b21 = a.c1.b.mul(b20_sub_b21);
-        b10_add_b11 = b.c1.a.add(b.c1.b);
-        CommonLib.Fp memory a20b10_add_b11 = a.c2.a.mul(b10_add_b11);
-        b10_sub_b11 = b.c1.a.sub(b.c1.b);
-        CommonLib.Fp memory a21b10_sub_b11 = a.c2.b.mul(b10_sub_b11);
-
-        CommonLib.Fp memory result_c0_1 = a00b01.add(a01b00);
-        result_c0_1 = result_c0_1.add(a10b20_add_b21);
-        result_c0_1 = result_c0_1.add(a11b20_sub_b21);
-        result_c0_1 = result_c0_1.add(a20b10_add_b11);
-        result_c0_1 = result_c0_1.add(a21b10_sub_b11);
+        CommonLib.Fp memory result_c0_1 = a
+            .c0
+            .a
+            .mul(b.c0.b)
+            .add(a.c0.b.mul(b.c0.a))
+            .add(a.c1.a.mul(b.c2.b))
+            .add(a.c1.b.mul(b.c2.a))
+            .add(a.c2.a.mul(b.c1.b))
+            .add(a.c2.b.mul(b.c1.a))
+            .add(a.c1.a.mul(b.c2.a))
+            .sub(a.c1.b.mul(b.c2.b))
+            .add(a.c2.a.mul(b.c1.a))
+            .sub(a.c2.b.mul(b.c1.b));
 
         //   result_c1_0 = a00 * b10 - a01 * b11 + a10 * b00 - a11 * b01 + a20 * b20 - a21 * b21
         //                                                          - a20 * b21 - a21 * b20.
         //               = a00 * b10 - a01 * b11 + a10 * b00 - a11 * b01 + a20 * (b20 - b21)
         //                                                          - a21 * (b20 + b21).
-        CommonLib.Fp memory a00b10 = a.c0.a.mul(b.c1.a);
-        CommonLib.Fp memory a01b11 = a.c0.b.mul(b.c1.b);
-        CommonLib.Fp memory a10b00 = a.c1.a.mul(b.c0.a);
-        CommonLib.Fp memory a11b01 = a.c1.b.mul(b.c0.b);
-        b20_sub_b21 = b.c2.a.sub(b.c2.b);
-        CommonLib.Fp memory a20b20_sub_b21 = a.c2.a.mul(b20_sub_b21);
-        b20_add_b21 = b.c2.a.add(b.c2.b);
-        CommonLib.Fp memory a21b20_add_b21 = a.c2.b.mul(b20_add_b21);
-
-        CommonLib.Fp memory result_c1_0 = a00b10.sub(a01b11);
-        result_c1_0 = result_c1_0.add(a10b00);
-        result_c1_0 = result_c1_0.sub(a11b01);
-        result_c1_0 = result_c1_0.add(a20b20_sub_b21);
-        result_c1_0 = result_c1_0.sub(a21b20_add_b21);
+        CommonLib.Fp memory result_c1_0 = a
+            .c0
+            .a
+            .mul(b.c1.a)
+            .sub(a.c0.b.mul(b.c1.b))
+            .add(a.c1.a.mul(b.c0.a))
+            .sub(a.c1.b.mul(b.c0.b))
+            .add(a.c2.a.mul(b.c2.a))
+            .sub(a.c2.b.mul(b.c2.b))
+            .sub(a.c2.a.mul(b.c2.b))
+            .sub(a.c2.b.mul(b.c2.a));
 
         //   result_c1_1 = a00 * b11 + a01 * b10 + a10 * b01 + a11 * b00 + a20 * b21 + a21 * b20
         //                                                          + a20 * b20 - a21 * b21.
         //               = a00 * b11 + a01 * b10 + a10 * b01 + a11 * b00 + a20 * (b20 + b21)
         //                                                          + a21 * (b20 - b21).
-        CommonLib.Fp memory a00b11 = a.c0.a.mul(b.c1.b);
-        CommonLib.Fp memory a01b10 = a.c0.b.mul(b.c1.a);
-        CommonLib.Fp memory a10b01 = a.c1.a.mul(b.c0.b);
-        CommonLib.Fp memory a11b00 = a.c1.b.mul(b.c0.a);
-        b20_add_b21 = b.c2.a.add(b.c2.b);
-        CommonLib.Fp memory a20b20_add_b21 = a.c2.a.mul(b20_add_b21);
-        b20_sub_b21 = b.c2.a.sub(b.c2.b);
-        CommonLib.Fp memory a21b20_sub_b21 = a.c2.b.mul(b20_sub_b21);
-
-        CommonLib.Fp memory result_c1_1 = a00b11.add(a01b10);
-        result_c1_1 = result_c1_1.add(a10b01);
-        result_c1_1 = result_c1_1.add(a11b00);
-        result_c1_1 = result_c1_1.add(a20b20_add_b21);
-        result_c1_1 = result_c1_1.add(a21b20_sub_b21);
+        CommonLib.Fp memory result_c1_1 = a
+            .c0
+            .a
+            .mul(b.c1.b)
+            .add(a.c0.b.mul(b.c1.a))
+            .add(a.c1.a.mul(b.c0.b))
+            .add(a.c1.b.mul(b.c0.a))
+            .add(a.c2.a.mul(b.c2.b))
+            .add(a.c2.b.mul(b.c2.a))
+            .add(a.c2.a.mul(b.c2.a))
+            .sub(a.c2.b.mul(b.c2.b));
 
         //   result_c2_0 = a00 * b20 - a01 * b21 + a10 * b10 - a11 * b11 + a20 * b00 - a21 * b01.
-        CommonLib.Fp memory a00b20 = a.c0.a.mul(b.c2.a);
-        CommonLib.Fp memory a01b21 = a.c0.b.mul(b.c2.b);
-        CommonLib.Fp memory a10b10 = a.c1.a.mul(b.c1.a);
-        CommonLib.Fp memory a11b11 = a.c1.b.mul(b.c1.b);
-        CommonLib.Fp memory a20b00 = a.c2.a.mul(b.c0.a);
-        CommonLib.Fp memory a21b01 = a.c2.b.mul(b.c0.b);
-
-        CommonLib.Fp memory result_c2_0 = a00b20.sub(a01b21);
-        result_c2_0 = result_c2_0.add(a10b10);
-        result_c2_0 = result_c2_0.sub(a11b11);
-        result_c2_0 = result_c2_0.add(a20b00);
-        result_c2_0 = result_c2_0.sub(a21b01);
+        CommonLib.Fp memory result_c2_0 = a
+            .c0
+            .a
+            .mul(b.c2.a)
+            .sub(a.c0.b.mul(b.c2.b))
+            .add(a.c1.a.mul(b.c1.a))
+            .sub(a.c1.b.mul(b.c1.b))
+            .add(a.c2.a.mul(b.c0.a))
+            .sub(a.c2.b.mul(b.c0.b));
 
         //   result_c2_1 = a00 * b21 + a01 * b20 + a10 * b11 + a11 * b10 + a20 * b01 + a21 * b00.
-        CommonLib.Fp memory a00b21 = a.c0.a.mul(b.c2.b);
-        CommonLib.Fp memory a01b20 = a.c0.b.mul(b.c2.a);
-        CommonLib.Fp memory a10b11 = a.c1.a.mul(b.c1.b);
-        CommonLib.Fp memory a11b10 = a.c1.b.mul(b.c1.a);
-        CommonLib.Fp memory a20b01 = a.c2.a.mul(b.c0.b);
-        CommonLib.Fp memory a21b00 = a.c2.b.mul(b.c0.a);
-
-        CommonLib.Fp memory result_c2_1 = a00b21.add(a01b20);
-        result_c2_1 = result_c2_1.add(a10b11);
-        result_c2_1 = result_c2_1.add(a11b10);
-        result_c2_1 = result_c2_1.add(a20b01);
-        result_c2_1 = result_c2_1.add(a21b00);
+        CommonLib.Fp memory result_c2_1 = a
+            .c0
+            .a
+            .mul(b.c2.b)
+            .add(a.c0.b.mul(b.c2.a))
+            .add(a.c1.a.mul(b.c1.b))
+            .add(a.c1.b.mul(b.c1.a))
+            .add(a.c2.a.mul(b.c0.b))
+            .add(a.c2.b.mul(b.c0.a));
 
         return
             CommonLib.Fp6({
