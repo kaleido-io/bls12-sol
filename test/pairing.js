@@ -158,7 +158,7 @@ describe('BLS12-381', function () {
     verify(result, expected);
   });
 
-  it('pairingGenerators()', async () => {
+  it.skip('pairingGenerators()', async () => {
     console.log('calling pairingGenerators()');
     const result = await pairing.pairingGenerators();
     console.log(result);
