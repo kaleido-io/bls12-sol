@@ -35,14 +35,9 @@ library FpLib {
 
     function mod(
         CommonLib.Fp memory self
-    ) internal pure returns (CommonLib.Fp memory) {
-        unchecked {
-            if (self.a > P_A || (self.a == P_A && self.b > P_B)) {
-                self.a -= P_A + (self.b > P_B ? 0 : 1);
-                self.b -= P_B;
-            }
-            return self;
-        }
+    ) internal view returns (CommonLib.Fp memory) {
+        CommonLib.Fp memory p = CommonLib.Fp(P_A, P_B);
+        return modExp(self, one(), p);
     }
 
     function add(
@@ -119,15 +114,14 @@ library FpLib {
             uint256 b3 = uint128(b.a);
             uint256 b4 = uint128(b.a >> 128);
             CommonLib.Fp memory res = normal2(CommonLib.Fp(0, a1 * b1), 0);
-            res = add(res, normal2(add2(a1 * b2, a2 * b1), 16));
-            res = add(res, normal2(add3(a1 * b3, a2 * b2, a3 * b1), 32));
-            res = add(
-                res,
+            res = res.add(normal2(add2(a1 * b2, a2 * b1), 16));
+            res = res.add(normal2(add3(a1 * b3, a2 * b2, a3 * b1), 32));
+            res = res.add(
                 normal2(add4(a1 * b4, a2 * b3, a3 * b2, a4 * b1), 48)
             );
-            res = add(res, normal2(add3(a2 * b4, a3 * b3, a4 * b2), 64));
-            res = add(res, normal2(add2(a3 * b4, a4 * b3), 96));
-            res = add(res, normal2(CommonLib.Fp(0, a4 * b4), 128));
+            res = res.add(normal2(add3(a2 * b4, a3 * b3, a4 * b2), 64));
+            res = res.add(normal2(add2(a3 * b4, a4 * b3), 96));
+            res = res.add(normal2(CommonLib.Fp(0, a4 * b4), 128));
             return normal(res);
         }
     }
