@@ -19,48 +19,202 @@ import {FpLib} from "./fp.sol";
 import {Fp2Lib} from "./fp2.sol";
 import {Fp6Lib} from "./fp6.sol";
 import {Fp12Lib} from "./fp12.sol";
+import {G1ProjectiveLib} from "./g1.sol";
 import {console} from "hardhat/console.sol";
 
-library G1AffineLib {
-    function negativeP1() internal pure returns (CommonLib.G1Affine memory) {
-        return
-            CommonLib.G1Affine({
-                x: CommonLib.Fp({
-                    a: 31827880280837800241567138048534752271,
-                    b: 88385725958748408079899006800036250932223001591707578097800747617502997169851
-                }),
-                y: CommonLib.Fp({
-                    a: 22997279242622214937712647648895181298,
-                    b: 46816884707101390882112958134453447585552332943769894357249934112654335001290
-                }),
-                is_point_at_infinity: false
-            });
-    }
-}
-
-library G1ProjectiveLib {
-    function fromAffine(
-        CommonLib.G2Affine memory p
-    ) internal pure returns (CommonLib.G2Projective memory) {
-        return
-            CommonLib.G2Projective({
-                x: p.x,
-                y: p.y,
-                z: CommonLib.Fp2({
-                    a: CommonLib.Fp({a: 1, b: 0}),
-                    b: CommonLib.Fp({a: 0, b: 0})
-                })
-            });
-    }
-}
-
-library B12 {
+library PairingLib {
     using FpLib for CommonLib.Fp;
     using Fp2Lib for CommonLib.Fp2;
     using Fp6Lib for CommonLib.Fp6;
     using Fp12Lib for CommonLib.Fp12;
 
     error Test1();
+
+    function cyclotomic_square(
+        CommonLib.Fp12 memory f
+    ) internal view returns (CommonLib.Fp12 memory) {
+        CommonLib.Fp2 memory z0 = f.c0.c0;
+        CommonLib.Fp2 memory z4 = f.c0.c1;
+        CommonLib.Fp2 memory z3 = f.c0.c2;
+        CommonLib.Fp2 memory z2 = f.c1.c0;
+        CommonLib.Fp2 memory z1 = f.c1.c1;
+        CommonLib.Fp2 memory z5 = f.c1.c2;
+
+        (CommonLib.Fp2 memory t0, CommonLib.Fp2 memory t1) = fp4_square(z0, z1);
+
+        z0 = t0.sub(z0);
+        z0 = z0.add(z0).add(t0);
+        z1 = t1.add(z1);
+        z1 = z1.add(z1).add(t1);
+
+        (t0, t1) = fp4_square(z2, z3);
+        (CommonLib.Fp2 memory t2, CommonLib.Fp2 memory t3) = fp4_square(z4, z5);
+
+        z4 = t0.sub(z4);
+        z4 = z4.add(z4).add(t0);
+
+        z5 = t1.add(z5);
+        z5 = z5.add(z5).add(t1);
+
+        t0 = t3.mul_by_nonresidue();
+        z2 = t0.add(z2);
+        z2 = z2.add(z2).add(t0);
+
+        z3 = t2.sub(z3);
+        z3 = z3.add(z3).add(t2);
+
+        return
+            CommonLib.Fp12({
+                c0: CommonLib.Fp6({c0: z0, c1: z4, c2: z3}),
+                c1: CommonLib.Fp6({c0: z2, c1: z1, c2: z5})
+            });
+    }
+
+    function cycolotomic_exp(
+        CommonLib.Fp12 memory f
+    ) internal view returns (CommonLib.Fp12 memory) {
+        // https://github.com/zkcrypto/bls12_381/blob/main/src/pairings.rs#L119
+        // Got array from zkcrypto impl
+        bool[64] memory booleans = [
+            true,
+            true,
+            false,
+            true,
+            false,
+            false,
+            true,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            true,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            true,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+        ];
+
+        CommonLib.Fp12 memory tmp = Fp12Lib.one();
+        bool found_one = false;
+        for (uint256 i = 0; i < 64; i++) {
+            if (found_one) {
+                tmp = cyclotomic_square(tmp);
+            } else {
+                found_one = booleans[i];
+            }
+
+            if (booleans[i]) {
+                tmp = tmp.mul(f);
+            }
+        }
+
+        return tmp.conjugate();
+    }
+
+    function fp4_square(
+        CommonLib.Fp2 memory a,
+        CommonLib.Fp2 memory b
+    ) internal view returns (CommonLib.Fp2 memory, CommonLib.Fp2 memory) {
+        CommonLib.Fp2 memory t0 = a.square();
+        CommonLib.Fp2 memory t1 = b.square();
+        CommonLib.Fp2 memory t2 = t1.mul_by_nonresidue();
+        CommonLib.Fp2 memory c0 = t2.add(t0);
+        t2 = a.add(b);
+        t2 = t2.square();
+        t2 = t2.sub(t0);
+        CommonLib.Fp2 memory c1 = t2.sub(t1);
+
+        return (c0, c1);
+    }
+
+    function final_exponentiation(
+        CommonLib.Fp12 memory self
+    ) internal view returns (CommonLib.Fp12 memory) {
+        CommonLib.Fp12 memory f = self;
+        CommonLib.Fp12 memory t0 = f
+            .frobenius_map()
+            .frobenius_map()
+            .frobenius_map()
+            .frobenius_map()
+            .frobenius_map()
+            .frobenius_map();
+        // This will error if inverse doesn't exist
+        CommonLib.Fp12 memory t1 = f.invert();
+        CommonLib.Fp12 memory t2 = t0.mul(t1);
+        t1 = t2;
+        t2 = t2.frobenius_map().frobenius_map();
+        t2 = t2.mul(t1);
+        t1 = cyclotomic_square(t2).conjugate();
+        CommonLib.Fp12 memory t3 = cycolotomic_exp(t2);
+        CommonLib.Fp12 memory t4 = cyclotomic_square(t3);
+        CommonLib.Fp12 memory t5 = t1.mul(t3);
+        t1 = cycolotomic_exp(t5);
+        t0 = cycolotomic_exp(t1);
+        CommonLib.Fp12 memory t6 = cycolotomic_exp(t0);
+        t6 = t6.mul(t4);
+        t4 = cycolotomic_exp(t6);
+        t5 = t5.conjugate();
+        t4 = t4.mul(t5).mul(t2);
+        t5 = t2.conjugate();
+        t1 = t1.mul(t2);
+        t1 = t1.frobenius_map().frobenius_map().frobenius_map();
+        t6 = t6.mul(t5);
+        t6 = t6.frobenius_map();
+        t3 = t3.mul(t0);
+        t3 = t3.frobenius_map().frobenius_map();
+        t3 = t3.mul(t1);
+        t3 = t3.mul(t6);
+        f = t3.mul(t4);
+        return f;
+    }
 
     function doubling_step(
         CommonLib.G2Projective memory r
@@ -174,18 +328,15 @@ library B12 {
         CommonLib.Fp2[3] memory coeffs,
         CommonLib.G1Affine memory p
     ) internal view returns (CommonLib.Fp12 memory) {
-        console.log("ell - 1");
-        CommonLib.Fp memory c0c0 = coeffs[0].a.mul(p.y);
-        CommonLib.Fp memory c0c1 = coeffs[0].b.mul(p.y);
-        console.log("ell - 2");
-        CommonLib.Fp memory c1c0 = coeffs[1].a.mul(p.x);
-        CommonLib.Fp memory c1c1 = coeffs[1].b.mul(p.x);
-        console.log("ell - 3");
+        CommonLib.Fp memory c0c0 = coeffs[0].c0.mul(p.y);
+        CommonLib.Fp memory c0c1 = coeffs[0].c1.mul(p.y);
+        CommonLib.Fp memory c1c0 = coeffs[1].c0.mul(p.x);
+        CommonLib.Fp memory c1c1 = coeffs[1].c1.mul(p.x);
         return
             f.mul_by_014(
                 coeffs[2],
-                CommonLib.Fp2({a: c1c0, b: c1c1}),
-                CommonLib.Fp2({a: c0c0, b: c0c1})
+                CommonLib.Fp2({c0: c1c0, c1: c1c1}),
+                CommonLib.Fp2({c0: c0c0, c1: c0c1})
             );
     }
 
@@ -266,12 +417,11 @@ library B12 {
         bool foundOne = false;
 
         for (uint256 i = 0; i < 64; i++) {
-            console.log("i: %d", i);
+            console.log("====> i: %d", i);
             if (!foundOne) {
                 foundOne = booleans[i];
             } else {
                 // Doubling step receives f. Does 2 things: doubling_step function & ell function
-                console.log("Doubling step");
                 (
                     CommonLib.Fp2 memory coeffs_c0,
                     CommonLib.Fp2 memory coeffs_c1,
@@ -279,20 +429,16 @@ library B12 {
                     CommonLib.G2Projective memory cur_updated
                 ) = doubling_step(adder_cur);
                 adder_cur = cur_updated;
-                console.log("ell");
                 f = ell(f, [coeffs_c0, coeffs_c1, coeffs_c2], adder_p);
                 if (booleans[i]) {
-                    console.log("Addition step");
                     (
                         coeffs_c0,
                         coeffs_c1,
                         coeffs_c2,
                         cur_updated
                     ) = addition_step(adder_cur, adder_base);
-                    console.log("ell");
                     f = ell(f, [coeffs_c0, coeffs_c1, coeffs_c2], adder_p);
                 }
-                console.log("f.square()");
                 f = f.square();
             }
         }
@@ -317,6 +463,6 @@ library B12 {
         CommonLib.G2Affine memory q
     ) public view returns (CommonLib.Fp12 memory) {
         CommonLib.Fp12 memory tmp = miller_loop(p, q);
-        return tmp.final_exponentiation();
+        return final_exponentiation(tmp);
     }
 }

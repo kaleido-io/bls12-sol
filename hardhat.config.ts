@@ -20,6 +20,10 @@ const config: HardhatUserConfig = {
         "edf0f2922e84fdb90ee4b6e0f7c136c2843025d65f44e24402194a418a81a796",
       ],
     },
+    hardhat: {
+      gas: 12000000000,
+      blockGasLimit: 12000000000,
+    },
   },
 };
 

@@ -31,28 +31,36 @@ function combine(a, b) {
 }
 
 describe('BLS12-381', function () {
-  let verifier;
+  let pairing;
   this.timeout(60000);
 
   before(async () => {
-    const b12 = await hre.ethers.deployContract('B12');
-    const deployment = await b12.waitForDeployment();
-    console.log('B12 deployed to:', JSON.stringify(deployment.target, null, 2));
+    const PairingLib = await hre.ethers.deployContract('PairingLib');
+    const deployment = await PairingLib.waitForDeployment();
+    console.log('PairingLib deployed to:', JSON.stringify(deployment.target, null, 2));
 
-    const TestVerifier = await hre.ethers.getContractFactory('TestVerifier', {
+    const G1AffineLib = await hre.ethers.deployContract('G1AffineLib');
+    const G1AffineDeployment = await G1AffineLib.waitForDeployment();
+    console.log('G1AffineLib deployed to:', JSON.stringify(G1AffineDeployment.target, null, 2));
+
+    const G2AffineLib = await hre.ethers.deployContract('G2AffineLib');
+    const G2AffineDeployment = await G2AffineLib.waitForDeployment();
+    console.log('G2AffineLib deployed to:', JSON.stringify(G2AffineDeployment.target, null, 2));
+
+    const TestPairing = await hre.ethers.getContractFactory('TestPairingLib', {
       libraries: {
-        B12: deployment.target,
+        PairingLib: deployment.target,
+        G1AffineLib: G1AffineDeployment.target,
+        G2AffineLib: G2AffineDeployment.target,
       },
     });
-    verifier = await TestVerifier.deploy();
-    console.log('TestVerifier deployed to:', verifier.target);
+    pairing = await TestPairing.deploy();
+    console.log('TestPairingLib deployed to:', pairing.target);
   });
 
-  it('pairing()', async () => {
-    console.log('calling init()');
-    await verifier.init();
-    console.log('calling pairing()');
-    const pairing = await verifier.pairing.call();
-    console.log(pairing);
+  it('pairingGenerators()', async () => {
+    console.log('calling pairingGenerators()');
+    const result = await pairing.pairingGenerators.call();
+    console.log(result);
   });
 });

@@ -17,9 +17,11 @@ pragma solidity ^0.8.28;
 import {console} from "hardhat/console.sol";
 import {CommonLib} from "../common.sol";
 import {FpLib} from "../fp.sol";
-import {B12} from "../b12.sol";
+import {G1AffineLib} from "../g1.sol";
+import {G2AffineLib} from "../g2.sol";
+import {PairingLib} from "../pairing.sol";
 
-contract TestVerifier {
+contract TestPairingLib {
     // Verification Key data
     CommonLib.G1Affine alpha_g1;
     CommonLib.G2Affine beta_g2;
@@ -65,7 +67,12 @@ contract TestVerifier {
     }
 
     error Test1();
-    function pairing() public view returns (CommonLib.Fp12 memory) {
-        return B12.pairing(alpha_g1, beta_g2);
+
+    function pairingGenerators() public view returns (CommonLib.Fp12 memory) {
+        return
+            PairingLib.pairing(
+                G1AffineLib.generator(),
+                G2AffineLib.generator()
+            );
     }
 }
