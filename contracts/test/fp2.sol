@@ -63,4 +63,10 @@ contract TestFp2Lib {
     ) public view returns (CommonLib.Fp2 memory) {
         return Fp2Lib.invert(a);
     }
+
+    function mul_by_nonresidue(
+        CommonLib.Fp2 memory self
+    ) public view returns (CommonLib.Fp2 memory) {
+        return Fp2Lib.mul_by_nonresidue(self);
+    }
 }

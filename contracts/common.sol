@@ -22,14 +22,14 @@ uint256 constant P_B = 0x64774b84f38512bf6730d2a0f6b0f6241eabfffeb153ffffb9fefff
 library CommonLib {
     // Fp is a field element with the high-order part stored in `a`.
     struct Fp {
-        uint256 a;
-        uint256 b;
+        uint256 a; // higher order bits
+        uint256 b; // lower order bits
     }
     // Fp2 is an extension field element with the coefficient of the
-    // quadratic non-residue stored in `b`, i.e. p = a + i * b
+    // quadratic non-residue stored in `c1`, i.e. p = c0 + i * c1
     struct Fp2 {
-        Fp a;
-        Fp b;
+        Fp c0;
+        Fp c1;
     }
 
     struct Fp6 {
