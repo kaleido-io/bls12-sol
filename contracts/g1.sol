@@ -14,9 +14,7 @@
  */
 pragma solidity ^0.8.28;
 
-import {TypedMemView} from "@summa-tx/memview.sol/contracts/TypedMemView.sol";
-import {CommonLib, P_A, P_B} from "./common.sol";
-import {console} from "hardhat/console.sol";
+import {CommonLib} from "./common.sol";
 
 library G1AffineLib {
     function generator() public pure returns (CommonLib.G1Affine memory) {
@@ -45,22 +43,6 @@ library G1AffineLib {
                     b: 46816884707101390882112958134453447585552332943769894357249934112654335001290
                 }),
                 is_point_at_infinity: false
-            });
-    }
-}
-
-library G1ProjectiveLib {
-    function fromAffine(
-        CommonLib.G2Affine memory p
-    ) internal pure returns (CommonLib.G2Projective memory) {
-        return
-            CommonLib.G2Projective({
-                x: p.x,
-                y: p.y,
-                z: CommonLib.Fp2({
-                    c0: CommonLib.Fp({a: 1, b: 0}),
-                    c1: CommonLib.Fp({a: 0, b: 0})
-                })
             });
     }
 }

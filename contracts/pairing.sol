@@ -19,7 +19,7 @@ import {FpLib} from "./fp.sol";
 import {Fp2Lib} from "./fp2.sol";
 import {Fp6Lib} from "./fp6.sol";
 import {Fp12Lib} from "./fp12.sol";
-import {G1ProjectiveLib} from "./g1.sol";
+import {G2ProjectiveLib} from "./g2.sol";
 import {console} from "hardhat/console.sol";
 
 library PairingLib {
@@ -29,6 +29,8 @@ library PairingLib {
     using Fp12Lib for CommonLib.Fp12;
 
     error Test1();
+
+    function init() public pure {}
 
     function cyclotomic_square(
         CommonLib.Fp12 memory f
@@ -410,46 +412,40 @@ library PairingLib {
             false,
             false
         ];
-        CommonLib.G2Projective memory adder_cur = G1ProjectiveLib.fromAffine(q);
+        CommonLib.G2Projective memory adder_cur = G2ProjectiveLib.fromAffine(q);
         CommonLib.G2Affine memory adder_base = q;
         CommonLib.G1Affine memory adder_p = p;
         CommonLib.Fp12 memory f = Fp12Lib.one();
         bool foundOne = false;
 
+        CommonLib.Fp2 memory coeffs_c0;
+        CommonLib.Fp2 memory coeffs_c1;
+        CommonLib.Fp2 memory coeffs_c2;
+        CommonLib.G2Projective memory cur_updated;
         for (uint256 i = 0; i < 64; i++) {
-            console.log("====> i: %d", i);
+            console.log("miller_loop: i: %d", i);
             if (!foundOne) {
                 foundOne = booleans[i];
-            } else {
-                // Doubling step receives f. Does 2 things: doubling_step function & ell function
-                (
-                    CommonLib.Fp2 memory coeffs_c0,
-                    CommonLib.Fp2 memory coeffs_c1,
-                    CommonLib.Fp2 memory coeffs_c2,
-                    CommonLib.G2Projective memory cur_updated
-                ) = doubling_step(adder_cur);
-                adder_cur = cur_updated;
-                f = ell(f, [coeffs_c0, coeffs_c1, coeffs_c2], adder_p);
-                if (booleans[i]) {
-                    (
-                        coeffs_c0,
-                        coeffs_c1,
-                        coeffs_c2,
-                        cur_updated
-                    ) = addition_step(adder_cur, adder_base);
-                    f = ell(f, [coeffs_c0, coeffs_c1, coeffs_c2], adder_p);
-                }
-                f = f.square();
+                continue;
             }
+            (coeffs_c0, coeffs_c1, coeffs_c2, cur_updated) = doubling_step(
+                adder_cur
+            );
+            adder_cur = cur_updated;
+            f = ell(f, [coeffs_c0, coeffs_c1, coeffs_c2], adder_p);
+            if (booleans[i]) {
+                (coeffs_c0, coeffs_c1, coeffs_c2, cur_updated) = addition_step(
+                    adder_cur,
+                    adder_base
+                );
+                f = ell(f, [coeffs_c0, coeffs_c1, coeffs_c2], adder_p);
+            }
+            f = f.square();
         }
 
-        // Doubling step receives f. Does 2 things: doubling_step function & ell function
-        (
-            CommonLib.Fp2 memory coeffs_c0,
-            CommonLib.Fp2 memory coeffs_c1,
-            CommonLib.Fp2 memory coeffs_c2,
-            CommonLib.G2Projective memory cur_updated
-        ) = doubling_step(adder_cur);
+        (coeffs_c0, coeffs_c1, coeffs_c2, cur_updated) = doubling_step(
+            adder_cur
+        );
         adder_cur = cur_updated;
         // ell updates f
         f = ell(f, [coeffs_c0, coeffs_c1, coeffs_c2], adder_p);

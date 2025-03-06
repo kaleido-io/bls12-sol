@@ -80,8 +80,8 @@ describe('Fp12 lib', function () {
 
   it('one()', async () => {
     const result = await fp12lib.one();
-    assert.equal(result.c0.c0.c0.a, 1n);
-    assert.equal(result.c0.c0.c0.b, 0n);
+    assert.equal(result.c0.c0.c0.a, 0n);
+    assert.equal(result.c0.c0.c0.b, 1n);
     assert.equal(result.c0.c0.c1.a, 0n);
     assert.equal(result.c0.c0.c1.b, 0n);
     assert.equal(result.c0.c1.c0.a, 0n);
@@ -300,3 +300,7 @@ function verify(result, expected) {
   assert.equal('0x' + result.c0.c2.c1.a.toString(16).padStart(64, '0'), expected.c0.c2.c1.a);
   assert.equal('0x' + result.c0.c2.c1.b.toString(16).padStart(64, '0'), expected.c0.c2.c1.b);
 }
+
+module.exports = {
+  verify,
+};
