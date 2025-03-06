@@ -23,6 +23,11 @@ library Fp2Lib {
     function zero() internal pure returns (CommonLib.Fp2 memory) {
         return CommonLib.Fp2({c0: FpLib.zero(), c1: FpLib.zero()});
     }
+
+    function one() internal pure returns (CommonLib.Fp2 memory) {
+        return CommonLib.Fp2({c0: FpLib.one(), c1: FpLib.zero()});
+    }
+
     function add(
         CommonLib.Fp2 memory self,
         CommonLib.Fp2 memory other

@@ -16,7 +16,6 @@ pragma solidity ^0.8.28;
 
 import {TypedMemView} from "@summa-tx/memview.sol/contracts/TypedMemView.sol";
 import {CommonLib, P_A, P_B} from "./common.sol";
-import {console} from "hardhat/console.sol";
 
 library FpLib {
     using TypedMemView for bytes;
@@ -136,7 +135,7 @@ library FpLib {
         CommonLib.Fp memory a
     ) internal view returns (CommonLib.Fp memory) {
         CommonLib.Fp memory p = CommonLib.Fp(P_A, P_B);
-        CommonLib.Fp memory exponent = CommonLib.Fp(0, 1);
+        CommonLib.Fp memory exponent = FpLib.one();
         return modExp(a, exponent, p);
     }
     function normal2(

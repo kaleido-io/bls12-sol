@@ -17,7 +17,6 @@ pragma solidity ^0.8.28;
 import {CommonLib} from "./common.sol";
 import {FpLib} from "./fp.sol";
 import {Fp2Lib} from "./fp2.sol";
-import {console} from "hardhat/console.sol";
 
 library Fp6Lib {
     using FpLib for CommonLib.Fp;
@@ -34,10 +33,7 @@ library Fp6Lib {
     function one() internal pure returns (CommonLib.Fp6 memory) {
         return
             CommonLib.Fp6({
-                c0: CommonLib.Fp2({
-                    c0: CommonLib.Fp({a: 1, b: 0}),
-                    c1: FpLib.zero()
-                }),
+                c0: Fp2Lib.one(),
                 c1: Fp2Lib.zero(),
                 c2: Fp2Lib.zero()
             });

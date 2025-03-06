@@ -14,7 +14,6 @@
  */
 pragma solidity ^0.8.28;
 
-import {console} from "hardhat/console.sol";
 import {CommonLib} from "../common.sol";
 import {Fp12Lib} from "../fp12.sol";
 

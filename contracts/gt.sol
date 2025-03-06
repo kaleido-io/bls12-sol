@@ -14,9 +14,7 @@
  */
 pragma solidity ^0.8.28;
 
-import {TypedMemView} from "@summa-tx/memview.sol/contracts/TypedMemView.sol";
 import {CommonLib} from "./common.sol";
-import {console} from "hardhat/console.sol";
 
 library GtLib {
     function generator() public pure returns (CommonLib.Fp12 memory) {

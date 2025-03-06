@@ -18,7 +18,6 @@ import {CommonLib} from "./common.sol";
 import {FpLib} from "./fp.sol";
 import {Fp2Lib} from "./fp2.sol";
 import {Fp6Lib} from "./fp6.sol";
-import {console} from "hardhat/console.sol";
 
 library Fp12Lib {
     using Fp12Lib for CommonLib.Fp12;
