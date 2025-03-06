@@ -61,4 +61,25 @@ contract TestFp6Lib {
     ) public view returns (CommonLib.Fp6 memory) {
         return Fp6Lib.invert(a);
     }
+
+    function frobenius_map(
+        CommonLib.Fp6 memory a
+    ) public view returns (CommonLib.Fp6 memory) {
+        return Fp6Lib.frobenius_map(a);
+    }
+
+    function mul_by_01(
+        CommonLib.Fp6 memory self,
+        CommonLib.Fp2 memory c0,
+        CommonLib.Fp2 memory c1
+    ) public view returns (CommonLib.Fp6 memory) {
+        return Fp6Lib.mul_by_01(self, c0, c1);
+    }
+
+    function mul_by_1(
+        CommonLib.Fp6 memory self,
+        CommonLib.Fp2 memory c1
+    ) public view returns (CommonLib.Fp6 memory) {
+        return Fp6Lib.mul_by_1(self, c1);
+    }
 }

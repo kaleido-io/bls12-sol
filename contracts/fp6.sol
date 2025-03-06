@@ -35,8 +35,8 @@ library Fp6Lib {
         return
             CommonLib.Fp6({
                 c0: CommonLib.Fp2({
-                    a: CommonLib.Fp({a: 1, b: 0}),
-                    b: FpLib.zero()
+                    c0: CommonLib.Fp({a: 1, b: 0}),
+                    c1: FpLib.zero()
                 }),
                 c1: Fp2Lib.zero(),
                 c2: Fp2Lib.zero()
@@ -128,8 +128,8 @@ library Fp6Lib {
 
         CommonLib.Fp2 memory tmp = (self.c1.mul(c2).add(self.c2.mul(c1)))
             .mul_by_nonresidue()
-            .add(self.c0)
-            .mul(c0);
+            .add(self.c0.mul(c0));
+
         // This will error if there is no inverse
         CommonLib.Fp2 memory inv_tmp = tmp.invert();
 
@@ -146,29 +146,17 @@ library Fp6Lib {
         CommonLib.Fp2 memory c1
     ) internal view returns (CommonLib.Fp6 memory) {
         unchecked {
-            console.log("mul_by_01 - 1");
             CommonLib.Fp2 memory a_a = self.c0.mul(c0);
             CommonLib.Fp2 memory b_b = self.c1.mul(c1);
-            console.log("mul_by_01 - 2");
             CommonLib.Fp2 memory t1 = self.c2.mul(c1).mul_by_nonresidue().add(
                 a_a
             );
-            console.log("mul_by_01 - 3");
             CommonLib.Fp2 memory t2 = c0
                 .add(c1)
                 .mul(self.c0.add(self.c1))
                 .sub(a_a)
                 .sub(b_b);
-            console.log("self.c2.a.a", self.c2.a.a);
-            console.log("self.c2.a.b", self.c2.a.b);
-            console.log("self.c2.b.a", self.c2.b.a);
-            console.log("self.c2.b.b", self.c2.b.b);
-            console.log("c0.a.a", c0.a.a);
-            console.log("c0.a.b", c0.a.b);
-            console.log("c0.b.a", c0.b.a);
-            console.log("c0.b.b", c0.b.b);
             CommonLib.Fp2 memory t3 = self.c2.mul(c0).add(b_b);
-            console.log("mul_by_01 - 4");
 
             return CommonLib.Fp6({c0: t1, c1: t2, c2: t3});
         }
@@ -217,19 +205,21 @@ library Fp6Lib {
         //                                        - a10 * b21 - a11 * b20 - a20 * b11 - a21 * b10.
         //               = a00 * b00 - a01 * b01 + a10 * (b20 - b21) - a11 * (b20 + b21)
         //                                        + a20 * (b10 - b11) - a21 * (b10 + b11).
+        CommonLib.Fp memory b20_m_b21 = b.c2.c0.sub(b.c2.c1);
+        CommonLib.Fp memory b20_p_b21 = b.c2.c0.add(b.c2.c1).mod();
+        CommonLib.Fp memory b10_m_b11 = b.c1.c0.sub(b.c1.c1);
+        CommonLib.Fp memory b10_p_b11 = b.c1.c0.add(b.c1.c1).mod();
         CommonLib.Fp memory result_c0_0 = a
             .c0
-            .a
-            .mul(b.c0.a)
-            .sub(a.c0.b.mul(b.c0.b))
-            .add(a.c1.a.mul(b.c2.a))
-            .sub(a.c1.b.mul(b.c2.b))
-            .add(a.c2.a.mul(b.c1.a))
-            .sub(a.c2.b.mul(b.c1.b))
-            .sub(a.c1.a.mul(b.c2.b))
-            .sub(a.c1.b.mul(b.c2.a))
-            .sub(a.c2.a.mul(b.c1.b))
-            .sub(a.c2.b.mul(b.c1.a));
+            .c0
+            .mul(b.c0.c0)
+            .sub(a.c0.c1.mul(b.c0.c1))
+            .add(a.c1.c0.mul(b20_m_b21))
+            .mod()
+            .sub(a.c1.c1.mul(b20_p_b21))
+            .add(a.c2.c0.mul(b10_m_b11))
+            .mod()
+            .sub(a.c2.c1.mul(b10_p_b11));
 
         //   result_c0_1 = a00 * b01 + a01 * b00 + a10 * b21 + a11 * b20 + a20 * b11 + a21 * b10
         //                                        + a10 * b20 - a11 * b21 + a20 * b10 - a21 * b11.
@@ -237,17 +227,18 @@ library Fp6Lib {
         //                                        + a20 * (b10 + b11) + a21 * (b10 - b11).
         CommonLib.Fp memory result_c0_1 = a
             .c0
-            .a
-            .mul(b.c0.b)
-            .add(a.c0.b.mul(b.c0.a))
-            .add(a.c1.a.mul(b.c2.b))
-            .add(a.c1.b.mul(b.c2.a))
-            .add(a.c2.a.mul(b.c1.b))
-            .add(a.c2.b.mul(b.c1.a))
-            .add(a.c1.a.mul(b.c2.a))
-            .sub(a.c1.b.mul(b.c2.b))
-            .add(a.c2.a.mul(b.c1.a))
-            .sub(a.c2.b.mul(b.c1.b));
+            .c0
+            .mul(b.c0.c1)
+            .add(a.c0.c1.mul(b.c0.c0))
+            .mod()
+            .add(a.c1.c0.mul(b20_p_b21))
+            .mod()
+            .add(a.c1.c1.mul(b20_m_b21))
+            .mod()
+            .add(a.c2.c0.mul(b10_p_b11))
+            .mod()
+            .add(a.c2.c1.mul(b10_m_b11))
+            .mod();
 
         //   result_c1_0 = a00 * b10 - a01 * b11 + a10 * b00 - a11 * b01 + a20 * b20 - a21 * b21
         //                                                          - a20 * b21 - a21 * b20.
@@ -255,15 +246,15 @@ library Fp6Lib {
         //                                                          - a21 * (b20 + b21).
         CommonLib.Fp memory result_c1_0 = a
             .c0
-            .a
-            .mul(b.c1.a)
-            .sub(a.c0.b.mul(b.c1.b))
-            .add(a.c1.a.mul(b.c0.a))
-            .sub(a.c1.b.mul(b.c0.b))
-            .add(a.c2.a.mul(b.c2.a))
-            .sub(a.c2.b.mul(b.c2.b))
-            .sub(a.c2.a.mul(b.c2.b))
-            .sub(a.c2.b.mul(b.c2.a));
+            .c0
+            .mul(b.c1.c0)
+            .sub(a.c0.c1.mul(b.c1.c1))
+            .add(a.c1.c0.mul(b.c0.c0))
+            .mod()
+            .sub(a.c1.c1.mul(b.c0.c1))
+            .add(a.c2.c0.mul(b20_m_b21))
+            .mod()
+            .sub(a.c2.c1.mul(b20_p_b21));
 
         //   result_c1_1 = a00 * b11 + a01 * b10 + a10 * b01 + a11 * b00 + a20 * b21 + a21 * b20
         //                                                          + a20 * b20 - a21 * b21.
@@ -271,43 +262,53 @@ library Fp6Lib {
         //                                                          + a21 * (b20 - b21).
         CommonLib.Fp memory result_c1_1 = a
             .c0
-            .a
-            .mul(b.c1.b)
-            .add(a.c0.b.mul(b.c1.a))
-            .add(a.c1.a.mul(b.c0.b))
-            .add(a.c1.b.mul(b.c0.a))
-            .add(a.c2.a.mul(b.c2.b))
-            .add(a.c2.b.mul(b.c2.a))
-            .add(a.c2.a.mul(b.c2.a))
-            .sub(a.c2.b.mul(b.c2.b));
+            .c0
+            .mul(b.c1.c1)
+            .add(a.c0.c1.mul(b.c1.c0))
+            .mod()
+            .add(a.c1.c0.mul(b.c0.c1))
+            .mod()
+            .add(a.c1.c1.mul(b.c0.c0))
+            .mod()
+            .add(a.c2.c0.mul(b20_p_b21))
+            .mod()
+            .add(a.c2.c1.mul(b20_m_b21))
+            .mod();
 
         //   result_c2_0 = a00 * b20 - a01 * b21 + a10 * b10 - a11 * b11 + a20 * b00 - a21 * b01.
         CommonLib.Fp memory result_c2_0 = a
             .c0
-            .a
-            .mul(b.c2.a)
-            .sub(a.c0.b.mul(b.c2.b))
-            .add(a.c1.a.mul(b.c1.a))
-            .sub(a.c1.b.mul(b.c1.b))
-            .add(a.c2.a.mul(b.c0.a))
-            .sub(a.c2.b.mul(b.c0.b));
+            .c0
+            .mul(b.c2.c0)
+            .sub(a.c0.c1.mul(b.c2.c1))
+            .add(a.c1.c0.mul(b.c1.c0))
+            .mod()
+            .sub(a.c1.c1.mul(b.c1.c1))
+            .add(a.c2.c0.mul(b.c0.c0))
+            .mod()
+            .sub(a.c2.c1.mul(b.c0.c1));
 
         //   result_c2_1 = a00 * b21 + a01 * b20 + a10 * b11 + a11 * b10 + a20 * b01 + a21 * b00.
         CommonLib.Fp memory result_c2_1 = a
             .c0
-            .a
-            .mul(b.c2.b)
-            .add(a.c0.b.mul(b.c2.a))
-            .add(a.c1.a.mul(b.c1.b))
-            .add(a.c1.b.mul(b.c1.a))
-            .add(a.c2.a.mul(b.c0.b))
-            .add(a.c2.b.mul(b.c0.a));
+            .c0
+            .mul(b.c2.c1)
+            .add(a.c0.c1.mul(b.c2.c0))
+            .mod()
+            .add(a.c1.c0.mul(b.c1.c1))
+            .mod()
+            .add(a.c1.c1.mul(b.c1.c0))
+            .mod()
+            .add(a.c2.c0.mul(b.c0.c1))
+            .mod()
+            .add(a.c2.c1.mul(b.c0.c0))
+            .mod();
 
         return
             CommonLib.Fp6({
-                c0: CommonLib.Fp2({a: result_c0_0, b: result_c0_1}),
-                c1: CommonLib.Fp2({a: result_c1_0, b: result_c1_1}),
-                c2: CommonLib.Fp2({a: result_c2_0, b: result_c2_1})
+                c0: CommonLib.Fp2({c0: result_c0_0, c1: result_c0_1}),
+                c1: CommonLib.Fp2({c0: result_c1_0, c1: result_c1_1}),
+                c2: CommonLib.Fp2({c0: result_c2_0, c1: result_c2_1})
             });
     }
     function frobenius_map(
@@ -320,20 +321,20 @@ library Fp6Lib {
         // c1 = c1 * (u + 1)^((p - 1) / 3)
         // (u + 1)^((p - 1) / 3)
         CommonLib.Fp2 memory constant1 = CommonLib.Fp2({
-            a: FpLib.zero(),
-            b: CommonLib.Fp({
-                a: 0x9427eb4f49fffd8bfd00000000aaac85,
-                b: 0x7d89759ad4897d29650fb85f9b40ea397fe699ec02408663d4de85aa0d1a0111
+            c0: FpLib.zero(),
+            c1: CommonLib.Fp({
+                a: 0x1a0111ea397fe699ec02408663d4de85,
+                b: 0xaa0d857d89759ad4897d29650fb85f9b409427eb4f49fffd8bfd00000000aaac
             })
         });
         // c2 = c2 * (u + 1)^((2p - 2) / 3)
         //(u + 1)^((2p - 2) / 3)
         CommonLib.Fp2 memory constant2 = CommonLib.Fp2({
-            a: CommonLib.Fp({
-                a: 0x9427eb4f49fffd8bfd00000000aaad85,
-                b: 0x7d89759ad4897d29650fb85f9b40ea397fe699ec02408663d4de85aa0d1a0111
+            c0: CommonLib.Fp({
+                a: 0x1a0111ea397fe699ec02408663d4de85,
+                b: 0xaa0d857d89759ad4897d29650fb85f9b409427eb4f49fffd8bfd00000000aaad
             }),
-            b: FpLib.zero()
+            c1: FpLib.zero()
         });
 
         c1 = c1.mul(constant1);
