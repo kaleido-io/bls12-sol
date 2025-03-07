@@ -16,25 +16,9 @@ const { assert } = require('chai');
 const { parseFp } = require('./utils');
 const { verify } = require('./fp12');
 
-function split(n) {
-  let str = n.toString(16).padStart(128, '0');
-  return ['0x' + str.substr(-128, 64), '0x' + str.substr(-64)];
-}
-
-function split2(n) {
-  let str = n.toString(16).padStart(96, '0');
-  console.log(`B12.Fp(0x${str.substr(0, 32)}, 0x${str.substr(32, 64)})`);
-}
-
-function combine(a, b) {
-  let aa = a.toString(16).padStart(64, '0');
-  let bb = b.toString(16).padStart(64, '0');
-  return BigInt('0x' + aa + bb);
-}
-
 describe('BLS12-381', function () {
   let pairing;
-  this.timeout(60000);
+  this.timeout(600000);
 
   before(async () => {
     const PairingLib = await hre.ethers.deployContract('PairingLib');
@@ -52,8 +36,8 @@ describe('BLS12-381', function () {
     const TestPairing = await hre.ethers.getContractFactory('TestPairingLib', {
       libraries: {
         PairingLib: deployment.target,
-        G1AffineLib: G1AffineDeployment.target,
-        G2AffineLib: G2AffineDeployment.target,
+        // G1AffineLib: G1AffineDeployment.target,
+        // G2AffineLib: G2AffineDeployment.target,
       },
     });
     pairing = await TestPairing.deploy();
@@ -75,6 +59,7 @@ describe('BLS12-381', function () {
 
     const result = await pairing.doubling_step({ x, y, z });
 
+    // check returned coefficients c0, c1, c2
     const expected_0_c0 = parseFp('0x16252b8dd268d802427658fa71e963b0a9eb3c943719265de7cfa0cbe8ffa56506552038f3a1934e464973e0fe1fc35c');
     const expected_0_c1 = parseFp('0x07160af82df76585315b6a86ed15707cca52a67be7bec61d27bf3c64c059e6e3953e9d2cb65c09b4e5eb8b6127139ce4');
     const expected_1_c0 = parseFp('0x02e41c97d90be113245263ae54eabf5c11a6db229e4f046662303606a04034fb8ca50bfac28074e21bb385547ad39217');
@@ -93,6 +78,26 @@ describe('BLS12-381', function () {
     assert.equal('0x' + result[2].c0.b.toString(16).padStart(64, '0'), expected_2_c0.b);
     assert.equal('0x' + result[2].c1.a.toString(16).padStart(64, '0'), expected_2_c1.a);
     assert.equal('0x' + result[2].c1.b.toString(16).padStart(64, '0'), expected_2_c1.b);
+
+    // check returned G2Projective
+    const expected_x_c0 = parseFp('0x04c434d2cec991d4c7c635489d368852f74681a23d11ebb1ded8d75d43125e170fb3bbd688c2b1802361662eb90a835d');
+    const expected_x_c1 = parseFp('0x1025c47d21aa8b83c3aca41f2b195aec2fa36036268203e14d4662bbd1ac89e23f4d688fa8047fd0a637e532f88a96a2');
+    const expected_y_c0 = parseFp('0x0fd24a3689bf254d3d84ac8c09791f812bfc1c1c0fb080d3256274c3811681c1a3c948ff12b90d30f67c590541d435fb');
+    const expected_y_c1 = parseFp('0x188b475ffd1bf8831f4458f91bceefed5c12598e92b2c9ce2d4b8a728374cd27e6e23617ee652aee18e5a74284c891db');
+    const expected_z_c0 = parseFp('0x14a13373be21e58d03a1fcf21ba318a17908e2db2614f8e569380ae939c69df34240c5f251425af371f9d06e1007581e');
+    const expected_z_c1 = parseFp('0x047e40f42d6218b13239672441ea7e9f86bbe38a4ffb809072d4ae2d99036fc23fac44e74570efb3307ec11ce588dcc4');
+    assert.equal('0x' + result[3].x.c0.a.toString(16).padStart(64, '0'), expected_x_c0.a);
+    assert.equal('0x' + result[3].x.c0.b.toString(16).padStart(64, '0'), expected_x_c0.b);
+    assert.equal('0x' + result[3].x.c1.a.toString(16).padStart(64, '0'), expected_x_c1.a);
+    assert.equal('0x' + result[3].x.c1.b.toString(16).padStart(64, '0'), expected_x_c1.b);
+    assert.equal('0x' + result[3].y.c0.a.toString(16).padStart(64, '0'), expected_y_c0.a);
+    assert.equal('0x' + result[3].y.c0.b.toString(16).padStart(64, '0'), expected_y_c0.b);
+    assert.equal('0x' + result[3].y.c1.a.toString(16).padStart(64, '0'), expected_y_c1.a);
+    assert.equal('0x' + result[3].y.c1.b.toString(16).padStart(64, '0'), expected_y_c1.b);
+    assert.equal('0x' + result[3].z.c0.a.toString(16).padStart(64, '0'), expected_z_c0.a);
+    assert.equal('0x' + result[3].z.c0.b.toString(16).padStart(64, '0'), expected_z_c0.b);
+    assert.equal('0x' + result[3].z.c1.a.toString(16).padStart(64, '0'), expected_z_c1.a);
+    assert.equal('0x' + result[3].z.c1.b.toString(16).padStart(64, '0'), expected_z_c1.b);
   });
 
   it('ell()', async () => {
@@ -156,12 +161,6 @@ describe('BLS12-381', function () {
       c1: { c0: { c0: expected_c1_c0_c0, c1: expected_c1_c0_c1 }, c1: { c0: expected_c1_c1_c0, c1: expected_c1_c1_c1 }, c2: { c0: expected_c1_c2_c0, c1: expected_c1_c2_c1 } },
     };
     verify(result, expected);
-  });
-
-  it.skip('pairingGenerators()', async () => {
-    console.log('calling pairingGenerators()');
-    const result = await pairing.pairingGenerators();
-    console.log(result);
   });
 
   it('cyclotomic_square()', async () => {
@@ -251,6 +250,39 @@ describe('BLS12-381', function () {
     const expected_c1_c1_c1 = parseFp('0x0a0133158d36bf906ca9d2dc42015ef7011ed787db174a0c20567e0c17fa7738b0c6a33b4e118c9bc1284f295a89b0dd');
     const expected_c1_c2_c0 = parseFp('0x0b3fee8a1858de6e27823b0cd40505825598400a5d719b133e04a81ce15604c19adc50ad256e6363ca3e188240b7b58a');
     const expected_c1_c2_c1 = parseFp('0x1747bd4ca58ef9ae807d4d3cbb6af21f1f30ea89d1bbad265f0bde5f2edea39e570170a793665b2733692f62c8914a01');
+    const expected = {
+      c0: { c0: { c0: expected_c0_c0_c0, c1: expected_c0_c0_c1 }, c1: { c0: expected_c0_c1_c0, c1: expected_c0_c1_c1 }, c2: { c0: expected_c0_c2_c0, c1: expected_c0_c2_c1 } },
+      c1: { c0: { c0: expected_c1_c0_c0, c1: expected_c1_c0_c1 }, c1: { c0: expected_c1_c1_c0, c1: expected_c1_c1_c1 }, c2: { c0: expected_c1_c2_c0, c1: expected_c1_c2_c1 } },
+    };
+    verify(result, expected);
+  });
+
+  it('pairingGenerators()', async () => {
+    console.log('calling pairingGenerators() - this will take a while ...');
+
+    const g1_x = parseFp('0x17f1d3a73197d7942695638c4fa9ac0fc3688c4f9774b905a14e3a3f171bac586c55e83ff97a1aeffb3af00adb22c6bb');
+    const g1_y = parseFp('0x08b3f481e3aaa0f1a09e30ed741d8ae4fcf5e095d5d00af600db18cb2c04b3edd03cc744a2888ae40caa232946c5e7e1');
+    const g1 = { x: g1_x, y: g1_y, is_point_at_infinity: false };
+
+    const g2_x_c0 = parseFp('0x024aa2b2f08f0a91260805272dc51051c6e47ad4fa403b02b4510b647ae3d1770bac0326a805bbefd48056c8c121bdb8');
+    const g2_x_c1 = parseFp('0x13e02b6052719f607dacd3a088274f65596bd0d09920b61ab5da61bbdc7f5049334cf11213945d57e5ac7d055d042b7e');
+    const g2_y_c0 = parseFp('0x0ce5d527727d6e118cc9cdc6da2e351aadfd9baa8cbdd3a76d429a695160d12c923ac9cc3baca289e193548608b82801');
+    const g2_y_c1 = parseFp('0x0606c4a02ea734cc32acd2b02bc28b99cb3e287e85a763af267492ab572e99ab3f370d275cec1da1aaa9075ff05f79be');
+    const g2 = { x: { c0: g2_x_c0, c1: g2_x_c1 }, y: { c0: g2_y_c0, c1: g2_y_c1 }, is_point_at_infinity: false };
+
+    const result = await pairing.pairing(g1, g2);
+    const expected_c0_c0_c0 = parseFp('0x1250ebd871fc0a92a7b2d83168d0d727272d441befa15c503dd8e90ce98db3e7b6d194f60839c508a84305aaca1789b6');
+    const expected_c0_c0_c1 = parseFp('0x089a1c5b46e5110b86750ec6a532348868a84045483c92b7af5af689452eafabf1a8943e50439f1d59882a98eaa0170f');
+    const expected_c0_c1_c0 = parseFp('0x1368bb445c7c2d209703f239689ce34c0378a68e72a6b3b216da0e22a5031b54ddff57309396b38c881c4c849ec23e87');
+    const expected_c0_c1_c1 = parseFp('0x193502b86edb8857c273fa075a50512937e0794e1e65a7617c90d8bd66065b1fffe51d7a579973b1315021ec3c19934f');
+    const expected_c0_c2_c0 = parseFp('0x01b2f522473d171391125ba84dc4007cfbf2f8da752f7c74185203fcca589ac719c34dffbbaad8431dad1c1fb597aaa5');
+    const expected_c0_c2_c1 = parseFp('0x018107154f25a764bd3c79937a45b84546da634b8f6be14a8061e55cceba478b23f7dacaa35c8ca78beae9624045b4b6');
+    const expected_c1_c0_c0 = parseFp('0x19f26337d205fb469cd6bd15c3d5a04dc88784fbb3d0b2dbdea54d43b2b73f2cbb12d58386a8703e0f948226e47ee89d');
+    const expected_c1_c0_c1 = parseFp('0x06fba23eb7c5af0d9f80940ca771b6ffd5857baaf222eb95a7d2809d61bfe02e1bfd1b68ff02f0b8102ae1c2d5d5ab1a');
+    const expected_c1_c1_c0 = parseFp('0x11b8b424cd48bf38fcef68083b0b0ec5c81a93b330ee1a677d0d15ff7b984e8978ef48881e32fac91b93b47333e2ba57');
+    const expected_c1_c1_c1 = parseFp('0x03350f55a7aefcd3c31b4fcb6ce5771cc6a0e9786ab5973320c806ad360829107ba810c5a09ffdd9be2291a0c25a99a2');
+    const expected_c1_c2_c0 = parseFp('0x04c581234d086a9902249b64728ffd21a189e87935a954051c7cdba7b3872629a4fafc05066245cb9108f0242d0fe3ef');
+    const expected_c1_c2_c1 = parseFp('0x0f41e58663bf08cf068672cbd01a7ec73baca4d72ca93544deff686bfd6df543d48eaa24afe47e1efde449383b676631');
     const expected = {
       c0: { c0: { c0: expected_c0_c0_c0, c1: expected_c0_c0_c1 }, c1: { c0: expected_c0_c1_c0, c1: expected_c0_c1_c1 }, c2: { c0: expected_c0_c2_c0, c1: expected_c0_c2_c1 } },
       c1: { c0: { c0: expected_c1_c0_c0, c1: expected_c1_c0_c1 }, c1: { c0: expected_c1_c1_c0, c1: expected_c1_c1_c1 }, c2: { c0: expected_c1_c2_c0, c1: expected_c1_c2_c1 } },

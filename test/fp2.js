@@ -22,7 +22,7 @@ describe('Fp2 lib', function () {
   before(async () => {
     const b12 = await hre.ethers.deployContract('TestFp2Lib');
     fp2lib = await b12.waitForDeployment();
-    console.log('FpLib deployed to:', JSON.stringify(fp2lib.target, null, 2));
+    console.log('Fp2Lib deployed to:', JSON.stringify(fp2lib.target, null, 2));
   });
 
   it('zero()', async () => {

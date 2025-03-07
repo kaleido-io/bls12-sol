@@ -14,20 +14,8 @@ const config: HardhatUserConfig = {
     },
   },
   networks: {
-    mekong: {
-      url: "http://localhost:8545",
-      accounts: [
-        "xxxx",
-      ],
-    },
     hardhat: {
-      gas: 12000000000,
-      blockGasLimit: 12000000000,
-    },
-    local: {
-      url: "http://localhost:8545",
-      gas: 12000000000,
-      gasPrice: 0,
+      blockGasLimit: 2000000000000,
     },
   },
 };

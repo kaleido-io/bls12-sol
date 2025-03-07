@@ -25,7 +25,7 @@ describe('Fp12 lib', function () {
   before(async () => {
     const b12 = await hre.ethers.deployContract('TestFp12Lib');
     fp12lib = await b12.waitForDeployment();
-    console.log('FpLib deployed to:', JSON.stringify(fp12lib.target, null, 2));
+    console.log('Fp12Lib deployed to:', JSON.stringify(fp12lib.target, null, 2));
 
     fp1_c0_c0_c0 = parseFp('0x15f30bb146420a3596196bc00af6c7091b1a912d3fe7024390015b157ce58b8cd3b853fc617f50270c4dafd0b8364404');
     fp1_c0_c0_c1 = parseFp('0x154e7e0da1249a829901d1abbda7c91f95378f62afdff255ada13ece005b9f200223cf7241ef7224541007e5e06f8f56');

@@ -25,7 +25,7 @@ describe('Fp6 lib', function () {
   before(async () => {
     const b12 = await hre.ethers.deployContract('TestFp6Lib');
     fp6lib = await b12.waitForDeployment();
-    console.log('FpLib deployed to:', JSON.stringify(fp6lib.target, null, 2));
+    console.log('Fp6Lib deployed to:', JSON.stringify(fp6lib.target, null, 2));
 
     fp1_c0_c0 = parseFp('0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000008c0ed57c');
     fp1_c0_c1 = parseFp('0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000008c0ed563');

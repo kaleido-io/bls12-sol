@@ -90,11 +90,11 @@ contract TestPairingLib {
         return PairingLib.ell(f, coeffs, p);
     }
 
-    function pairingGenerators() public view returns (CommonLib.Fp12 memory) {
-        CommonLib.G1Affine memory g1 = G1AffineLib.generator();
-        CommonLib.G2Affine memory g2 = G2AffineLib.generator();
-        PairingLib.init();
-        return PairingLib.pairing(g1, g2);
+    function pairing(
+        CommonLib.G1Affine memory p,
+        CommonLib.G2Affine memory q
+    ) public view returns (CommonLib.Fp12 memory) {
+        return PairingLib.pairing(p, q);
     }
 
     function cyclotomic_square(

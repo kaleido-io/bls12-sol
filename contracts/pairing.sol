@@ -422,8 +422,8 @@ library PairingLib {
         CommonLib.Fp2 memory coeffs_c1;
         CommonLib.Fp2 memory coeffs_c2;
         CommonLib.G2Projective memory cur_updated;
+
         for (uint256 i = 0; i < 64; i++) {
-            console.log("miller_loop: i: %d", i);
             if (!foundOne) {
                 foundOne = booleans[i];
                 continue;
@@ -438,6 +438,7 @@ library PairingLib {
                     adder_cur,
                     adder_base
                 );
+                adder_cur = cur_updated;
                 f = ell(f, [coeffs_c0, coeffs_c1, coeffs_c2], adder_p);
             }
             f = f.square();
