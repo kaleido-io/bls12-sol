@@ -49,6 +49,6 @@ describe('Verifier_G16', function () {
 
     const result = await verifier.verifyProof(proof, publicInputs);
 
-    console.log('result', result);
+    assert.isTrue(result, 'Invalid proof');
   });
 });
