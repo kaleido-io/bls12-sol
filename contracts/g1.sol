@@ -15,8 +15,11 @@
 pragma solidity ^0.8.28;
 
 import {CommonLib} from "./common.sol";
+import {FpLib} from "./fp.sol";
 
 library G1AffineLib {
+    using FpLib for CommonLib.Fp;
+
     function generator() public pure returns (CommonLib.G1Affine memory) {
         return
             CommonLib.G1Affine({
@@ -31,18 +34,14 @@ library G1AffineLib {
                 is_point_at_infinity: false
             });
     }
-    function negativeP1() internal pure returns (CommonLib.G1Affine memory) {
+    function neg(
+        CommonLib.G1Affine memory self
+    ) internal view returns (CommonLib.G1Affine memory) {
         return
             CommonLib.G1Affine({
-                x: CommonLib.Fp({
-                    a: 31827880280837800241567138048534752271,
-                    b: 88385725958748408079899006800036250932223001591707578097800747617502997169851
-                }),
-                y: CommonLib.Fp({
-                    a: 22997279242622214937712647648895181298,
-                    b: 46816884707101390882112958134453447585552332943769894357249934112654335001290
-                }),
-                is_point_at_infinity: false
+                x: self.x,
+                y: self.y.neg(),
+                is_point_at_infinity: self.is_point_at_infinity
             });
     }
 }

@@ -156,7 +156,7 @@ library FpLib {
         uint256 exponent2 = exponent.b;
         uint256 modulus1 = modulus.a;
         uint256 modulus2 = modulus.b;
-        bytes memory arg = new bytes(3 * 32 + 32 + 64 + 64);
+        bytes memory arg = new bytes(3 * 32 + 64 + 64 + 64);
         bytes memory ret = new bytes(64);
         uint256 result1;
         uint256 result2;
