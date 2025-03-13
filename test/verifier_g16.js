@@ -20,9 +20,18 @@ describe('Verifier_G16', function () {
   this.timeout(600000);
 
   before(async () => {
+    const G1AffineLib = await hre.ethers.deployContract('G1AffineLib');
+    const G1AffineDeployment = await G1AffineLib.waitForDeployment();
+    console.log('G1AffineLib deployed to:', G1AffineDeployment.target);
+
+    const G2AffineLib = await hre.ethers.deployContract('G2AffineLib');
+    const G2AffineDeployment = await G2AffineLib.waitForDeployment();
+    console.log('G2AffineLib deployed to:', G2AffineDeployment.target);
+
     const Verifier = await hre.ethers.getContractFactory('Verifier_G16', {
       libraries: {
-        // PairingLib: deployment.target,
+        G1AffineLib: G1AffineDeployment.target,
+        G2AffineLib: G2AffineDeployment.target,
       },
     });
     verifier = await Verifier.deploy();
@@ -50,5 +59,10 @@ describe('Verifier_G16', function () {
     const result = await verifier.verifyProof(proof, publicInputs);
 
     assert.isTrue(result, 'Invalid proof');
+  });
+
+  it('testPrecompile()', async () => {
+    const result = await verifier.testPrecompile.call();
+    assert.isTrue(result, 'Invalid precompile');
   });
 });

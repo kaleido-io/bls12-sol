@@ -16,6 +16,7 @@ pragma solidity ^0.8.28;
 
 import {CommonLib} from "./common.sol";
 import {G1AffineLib} from "./g1.sol";
+import {G2AffineLib} from "./g2.sol";
 
 contract Verifier_G16 {
     using G1AffineLib for CommonLib.G1Affine;
@@ -194,6 +195,63 @@ contract Verifier_G16 {
                 0x0f,
                 add(arg, 0x20),
                 mul(384, 4),
+                add(ret, 0x20),
+                0x40
+            )
+            switch success
+            case 0 {
+                revert(0x0, 0x0)
+            }
+            default {
+                result := mload(add(0x20, ret))
+            }
+        }
+
+        return result;
+    }
+
+    function testPrecompile() public view returns (bool) {
+        CommonLib.G1Affine memory g1 = G1AffineLib.generator();
+        CommonLib.G2Affine memory g2 = G2AffineLib.generator();
+        CommonLib.G1Affine memory neg_g1 = g1.neg();
+
+        uint256[] memory arg = new uint256[](12 * 2); // 12 words for each G1Affine and G2Affine pair
+        bytes memory ret = new bytes(32); // return is a simple 0 or 1
+
+        arg[0] = g1.x.a;
+        arg[1] = g1.x.b;
+        arg[2] = g1.y.a;
+        arg[3] = g1.y.b;
+        arg[4] = g2.x.c0.a;
+        arg[5] = g2.x.c0.b;
+        arg[6] = g2.x.c1.a;
+        arg[7] = g2.x.c1.b;
+        arg[8] = g2.y.c0.a;
+        arg[9] = g2.y.c0.b;
+        arg[10] = g2.y.c1.a;
+        arg[11] = g2.y.c1.b;
+
+        arg[12] = neg_g1.x.a;
+        arg[13] = neg_g1.x.b;
+        arg[14] = neg_g1.y.a;
+        arg[15] = neg_g1.y.b;
+        arg[16] = g2.x.c0.a;
+        arg[17] = g2.x.c0.b;
+        arg[18] = g2.x.c1.a;
+        arg[19] = g2.x.c1.b;
+        arg[20] = g2.y.c0.a;
+        arg[21] = g2.y.c0.b;
+        arg[22] = g2.y.c1.a;
+        arg[23] = g2.y.c1.b;
+
+        bool result;
+        assembly {
+            // call the precompiled contract BLS12_PAIRING_CHECK (0x0f)
+            let success := staticcall(
+                gas(),
+                0x0f,
+                add(arg, 0x20),
+                mul(384, 2),
                 add(ret, 0x20),
                 0x40
             )
