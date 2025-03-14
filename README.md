@@ -16,4 +16,16 @@ npm test
 
 ### Status
 
-The miller_loop() implementation currently can not complete and seems to crash the VM. To see it running remove the `skip` from the test `pairingGenerators`. It will cause a revert after ~33 iterations.
+There's a solidity based implementation of the `pairing` operation, with miller_loop and final_exponentiation, which is super expensive. It takes setting the block gas limit to `2,000,000,000,000` to complete. So the test `pairingGenerators` can only be tested against the local hardhat network.
+
+To try this, remove the `skip` from the test and run:
+
+```console
+npx hardhat test
+```
+
+A much better way to perform pairing is by using the new precompile in the Pectra hardfork. It requires using Holesky as the target network, which is the only network where the Pectra fork has been completed.
+
+```console
+npx hardhat test --network holesky
+```

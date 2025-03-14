@@ -34,9 +34,9 @@ describe('Verifier_G16', function () {
         // G2AffineLib: G2AffineDeployment.target,
       },
     });
-    // verifier = await Verifier.deploy();
-    // await verifier.waitForDeployment();
-    verifier = Verifier.attach('0xDE6C4E6F68Aebb695e787470f8FBd0085d2b01c1');
+    verifier = await Verifier.deploy();
+    await verifier.waitForDeployment();
+    // verifier = Verifier.attach('0xDE6C4E6F68Aebb695e787470f8FBd0085d2b01c1');
     console.log('Verifier_G16 deployed to:', verifier.target);
   });
 

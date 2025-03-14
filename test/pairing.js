@@ -25,13 +25,13 @@ describe('BLS12-381', function () {
     const deployment = await PairingLib.waitForDeployment();
     console.log('PairingLib deployed to:', JSON.stringify(deployment.target, null, 2));
 
-    const G1AffineLib = await hre.ethers.deployContract('G1AffineLib');
-    const G1AffineDeployment = await G1AffineLib.waitForDeployment();
-    console.log('G1AffineLib deployed to:', JSON.stringify(G1AffineDeployment.target, null, 2));
+    // const G1AffineLib = await hre.ethers.deployContract('G1AffineLib');
+    // const G1AffineDeployment = await G1AffineLib.waitForDeployment();
+    // console.log('G1AffineLib deployed to:', JSON.stringify(G1AffineDeployment.target, null, 2));
 
-    const G2AffineLib = await hre.ethers.deployContract('G2AffineLib');
-    const G2AffineDeployment = await G2AffineLib.waitForDeployment();
-    console.log('G2AffineLib deployed to:', JSON.stringify(G2AffineDeployment.target, null, 2));
+    // const G2AffineLib = await hre.ethers.deployContract('G2AffineLib');
+    // const G2AffineDeployment = await G2AffineLib.waitForDeployment();
+    // console.log('G2AffineLib deployed to:', JSON.stringify(G2AffineDeployment.target, null, 2));
 
     const TestPairing = await hre.ethers.getContractFactory('TestPairingLib', {
       libraries: {
@@ -41,6 +41,7 @@ describe('BLS12-381', function () {
       },
     });
     pairing = await TestPairing.deploy();
+    await pairing.waitForDeployment();
     console.log('TestPairingLib deployed to:', pairing.target);
   });
 
@@ -257,7 +258,7 @@ describe('BLS12-381', function () {
     verify(result, expected);
   });
 
-  it('pairingGenerators()', async () => {
+  it.skip('pairingGenerators()', async () => {
     console.log('calling pairingGenerators() - this will take a while ...');
 
     const g1_x = parseFp('0x17f1d3a73197d7942695638c4fa9ac0fc3688c4f9774b905a14e3a3f171bac586c55e83ff97a1aeffb3af00adb22c6bb');
