@@ -17,6 +17,12 @@ const config: HardhatUserConfig = {
     hardhat: {
       blockGasLimit: 2000000000000,
     },
+    holesky: {
+      url: "https://holesky.gateway.tenderly.co",
+      gas: "auto",
+      gasPrice: "auto",
+      accounts: ["0xAAAA"],
+    }
   },
 };
 
