@@ -56,14 +56,14 @@ describe('Verifier_G16', function () {
     const pC = { x: pC_x, y: pC_y, is_point_at_infinity: false };
 
     const proof = { pA, pB, pC };
-    const publicInputs = [];
+    const publicInputs = ['0x10'];
 
     const result = await verifier.verifyProof(proof, publicInputs);
 
     assert.isTrue(result, 'Invalid proof');
   });
 
-  it('testPrecompile()', async () => {
+  it('testPairing()', async () => {
     const p1x = parseFp('0x832deafd0280610786cff96128e3ca6d18aee9c210434330df5e99a3dbe5a5bb452f541bbb5a61233b0f30ba12ebba9');
     const p1y = parseFp('0x18c7d15f9600316d017fa325445adff204dc1b72b0f5ae026a09572d65571c8ecc5f6c02c25cbe15b901ce2068602ed7');
     const p1 = { x: p1x, y: p1y, is_point_at_infinity: false };
@@ -84,7 +84,7 @@ describe('Verifier_G16', function () {
     const q2x = { c0: q2xc0, c1: q2xc1 };
     const q2y = { c0: q2yc0, c1: q2yc1 };
     const q2 = { x: q2x, y: q2y, is_point_at_infinity: false };
-    const result = await verifier.testPrecompile([p1, p2], [q1, q2], { gasLimit: 10000000 });
+    const result = await verifier.testPairing([p1, p2], [q1, q2], { gasLimit: 10000000 });
     assert.isTrue(result[0], 'Invalid precompile - unsuccessful');
     assert.equal(result[1], 1, 'Invalid precompile - returned 0');
   });

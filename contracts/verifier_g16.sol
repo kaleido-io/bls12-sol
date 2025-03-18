@@ -17,9 +17,12 @@ pragma solidity ^0.8.28;
 import {CommonLib} from "./common.sol";
 import {G1AffineLib} from "./g1.sol";
 import {G2AffineLib} from "./g2.sol";
+import {G1ProjectiveLib} from "./g1.sol";
+import {console} from "hardhat/console.sol";
 
 contract Verifier_G16 {
     using G1AffineLib for CommonLib.G1Affine;
+    using G1ProjectiveLib for CommonLib.G1Projective;
 
     struct Proof {
         CommonLib.G1Affine pA;
@@ -114,23 +117,62 @@ contract Verifier_G16 {
             is_point_at_infinity: false
         });
 
+    CommonLib.G1Affine[2] public ic = [
+        CommonLib.G1Affine({
+            x: CommonLib.Fp({
+                a: 0x06b834c28ca8eab4f801a0fad03ff138,
+                b: 0xcc119bae84e2904578fffd56f3f5771be5796ef2303b73b4ef0bc81e7e37bf6d
+            }),
+            y: CommonLib.Fp({
+                a: 0x089a4f57e0aa51f574ad56e8bcbddb0a,
+                b: 0x834a43579abcd149208cd4e3a5b8e8957680a0bc6ca7b50ad31de66408f5d404
+            }),
+            is_point_at_infinity: false
+        }),
+        CommonLib.G1Affine({
+            x: CommonLib.Fp({
+                a: 0x0dac3c54ae83ff908f0cb6df6602d2b4,
+                b: 0xe9b308304b13e6ad2cdb56b8765a02ccb8f061143cc6166b1e3fff3779113958
+            }),
+            y: CommonLib.Fp({
+                a: 0x13db038a5900bc7b38437843fb3575cd,
+                b: 0x303dd27247ca49a4b5b6a3a46d8afc570aec0a21953a41c3e3bfe598237a0ae2
+            }),
+            is_point_at_infinity: false
+        })
+    ];
+
     constructor() {}
 
     function verifyProof(
         Proof memory proof,
-        uint256[] memory publicInputs
+        uint256[1] memory publicInputs
     ) public view returns (bool) {
-        CommonLib.G1Affine memory acc = CommonLib.G1Affine({
-            x: CommonLib.Fp({
-                a: 0x04778c88e98aa676054401e08945a4e1,
-                b: 0x5288a430a6e6a5380f838a4f01f62f6eee07373d2a04cd0d75cce25b2bc0c847
-            }),
-            y: CommonLib.Fp({
-                a: 0x040f97f4f6b132a0930bea0d78b0c147,
-                b: 0x573b52fad985013cef4973f51d69aa11653228eac30e02bf5339b7b5f1570013
-            }),
-            is_point_at_infinity: false
-        });
+        CommonLib.G1Projective memory acc = G1ProjectiveLib.fromAffine(ic[0]);
+        for (uint256 i = 0; i < publicInputs.length; i++) {
+            for (uint256 j = 1; j < ic.length; j++) {
+                console.log("=== %d:%d", i, j);
+                CommonLib.G1Projective memory proj = G1ProjectiveLib.fromAffine(
+                    ic[j]
+                );
+                CommonLib.G1Projective memory prod = proj.mulByScalar(
+                    publicInputs[i]
+                );
+                acc = acc.add(prod);
+            }
+        }
+
+        // CommonLib.G1Affine({
+        //     x: CommonLib.Fp({
+        //         a: 0x04778c88e98aa676054401e08945a4e1,
+        //         b: 0x5288a430a6e6a5380f838a4f01f62f6eee07373d2a04cd0d75cce25b2bc0c847
+        //     }),
+        //     y: CommonLib.Fp({
+        //         a: 0x040f97f4f6b132a0930bea0d78b0c147,
+        //         b: 0x573b52fad985013cef4973f51d69aa11653228eac30e02bf5339b7b5f1570013
+        //     }),
+        //     is_point_at_infinity: false
+        // });
         uint256[] memory arg = new uint256[]((4 + 8) * 4); // 4 pairs of (G1Affine: 4 words, , G2Affine: 8 words)
         bytes memory ret = new bytes(32); // return is a simple 0 or 1
 
@@ -210,7 +252,7 @@ contract Verifier_G16 {
         return result;
     }
 
-    function testPrecompile(
+    function testPairing(
         CommonLib.G1Affine[] memory p,
         CommonLib.G2Affine[] memory q
     ) public view returns (bool success, uint256 result) {
