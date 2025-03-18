@@ -19,7 +19,6 @@ import {CommonLib, P_A, P_B} from "./common.sol";
 
 library FpLib {
     using TypedMemView for bytes;
-    using TypedMemView for bytes29;
     using FpLib for CommonLib.Fp;
 
     function zero() internal pure returns (CommonLib.Fp memory) {
@@ -42,7 +41,7 @@ library FpLib {
     function add(
         CommonLib.Fp memory a,
         CommonLib.Fp memory b
-    ) internal view returns (CommonLib.Fp memory r) {
+    ) internal pure returns (CommonLib.Fp memory r) {
         unchecked {
             uint256 bb = a.b + b.b;
             uint256 aa = a.a + b.a + (bb >= a.b && bb >= b.b ? 0 : 1);
@@ -53,7 +52,7 @@ library FpLib {
     function add2(
         uint256 a,
         uint256 b
-    ) internal view returns (CommonLib.Fp memory) {
+    ) internal pure returns (CommonLib.Fp memory) {
         return CommonLib.Fp(0, a).add(CommonLib.Fp(0, b));
     }
 
@@ -61,7 +60,7 @@ library FpLib {
         uint256 a,
         uint256 b,
         uint256 c
-    ) internal view returns (CommonLib.Fp memory) {
+    ) internal pure returns (CommonLib.Fp memory) {
         return
             CommonLib.Fp(0, a).add(CommonLib.Fp(0, b)).add(CommonLib.Fp(0, c));
     }
@@ -71,7 +70,7 @@ library FpLib {
         uint256 b,
         uint256 c,
         uint256 d
-    ) internal view returns (CommonLib.Fp memory) {
+    ) internal pure returns (CommonLib.Fp memory) {
         return
             CommonLib
                 .Fp(0, a)
@@ -83,7 +82,7 @@ library FpLib {
     function sub(
         CommonLib.Fp memory a,
         CommonLib.Fp memory b
-    ) internal view returns (CommonLib.Fp memory) {
+    ) internal pure returns (CommonLib.Fp memory) {
         CommonLib.Fp memory p = CommonLib.Fp({a: P_A, b: P_B});
         unchecked {
             if (b.a > a.a || (b.a == a.a && b.b > a.b)) {
@@ -96,7 +95,7 @@ library FpLib {
     }
     function neg(
         CommonLib.Fp memory self
-    ) internal view returns (CommonLib.Fp memory) {
+    ) internal pure returns (CommonLib.Fp memory) {
         return FpLib.zero().sub(self);
     }
     function mul(
@@ -241,12 +240,10 @@ library FpLib {
         }
         return CommonLib.Fp({a: result1, b: result2}).mod();
     }
-    function parseFp(
-        bytes memory input
-    ) internal pure returns (CommonLib.Fp memory ret) {
-        bytes29 ref = input.ref(0).postfix(input.length, 0);
-
-        ret.a = ref.indexUint(0, 32);
-        ret.b = ref.indexUint(32, 32);
+    function equal(
+        CommonLib.Fp memory self,
+        CommonLib.Fp memory other
+    ) internal pure returns (bool) {
+        return self.a == other.a && self.b == other.b;
     }
 }
