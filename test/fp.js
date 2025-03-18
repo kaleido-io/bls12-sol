@@ -83,6 +83,14 @@ describe('Fp lib', function () {
     const expected = parseFp('0x07f2e4347edee1da2979af3da154bbda03c261e839b037e9f47392df17742778a20841b53cc59c4c328d4804b6cb4c21');
     verify(result, expected);
   });
+
+  it('reverseBitOrder()', async () => {
+    const original = '0x86ef95bb71957b80fe4a153eb6bc11214787d42f3e3b9358ccd7a153b15ea042';
+    const result = await fplib.reverseBitOrder(original);
+    const expected = '42a05eb153a1d7cc58933b3e2fd487472111bcb63e154afe807b9571bb95ef86';
+    console.log(result.toString(16));
+    assert.equal(result, expected);
+  });
 });
 
 function verify(result, expected) {

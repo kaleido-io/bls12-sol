@@ -14,10 +14,13 @@
  */
 pragma solidity ^0.8.28;
 
+import {TypedMemView} from "@summa-tx/memview.sol/contracts/TypedMemView.sol";
 import {CommonLib} from "../common.sol";
 import {FpLib} from "../fp.sol";
 
 contract TestFpLib {
+    using TypedMemView for bytes;
+    using TypedMemView for bytes29;
     using FpLib for CommonLib.Fp;
 
     function zero() public pure returns (CommonLib.Fp memory) {
@@ -34,13 +37,13 @@ contract TestFpLib {
         uint256 b,
         uint256 c,
         uint256 d
-    ) public view returns (CommonLib.Fp memory) {
+    ) public pure returns (CommonLib.Fp memory) {
         return FpLib.add4(a, b, c, d);
     }
     function sub(
         CommonLib.Fp memory a,
         CommonLib.Fp memory b
-    ) public view returns (CommonLib.Fp memory) {
+    ) public pure returns (CommonLib.Fp memory) {
         return FpLib.sub(a, b);
     }
 
@@ -53,7 +56,7 @@ contract TestFpLib {
 
     function neg(
         CommonLib.Fp memory a
-    ) public view returns (CommonLib.Fp memory) {
+    ) public pure returns (CommonLib.Fp memory) {
         return FpLib.neg(a);
     }
 
@@ -61,5 +64,17 @@ contract TestFpLib {
         CommonLib.Fp memory a
     ) public view returns (CommonLib.Fp memory) {
         return FpLib.invert(a);
+    }
+    function parseFp(
+        bytes memory input
+    ) internal pure returns (CommonLib.Fp memory ret) {
+        bytes29 ref = input.ref(0).postfix(input.length, 0);
+
+        ret.a = ref.indexUint(0, 32);
+        ret.b = ref.indexUint(32, 32);
+    }
+
+    function reverseBitOrder(uint256 input) public pure returns (uint256 v) {
+        return CommonLib.reverseBitOrder(input);
     }
 }
