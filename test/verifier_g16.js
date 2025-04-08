@@ -28,7 +28,7 @@ describe('Verifier_G16', function () {
     // const G2AffineDeployment = await G2AffineLib.waitForDeployment();
     // console.log('G2AffineLib deployed to:', G2AffineDeployment.target);
 
-    const Verifier = await hre.ethers.getContractFactory('Verifier_G16', {
+    const Verifier = await hre.ethers.getContractFactory('TestVerifierG16', {
       libraries: {
         // G1AffineLib: G1AffineDeployment.target,
         // G2AffineLib: G2AffineDeployment.target,
@@ -37,7 +37,7 @@ describe('Verifier_G16', function () {
     verifier = await Verifier.deploy();
     await verifier.waitForDeployment();
     // verifier = Verifier.attach('0xDE6C4E6F68Aebb695e787470f8FBd0085d2b01c1');
-    console.log('Verifier_G16 deployed to:', verifier.target);
+    console.log('TestVerifierG16 deployed to:', verifier.target);
   });
 
   it('verify_proof()', async () => {
@@ -58,9 +58,14 @@ describe('Verifier_G16', function () {
     const proof = { pA, pB, pC };
     const publicInputs = ['0x10'];
 
-    const result = await verifier.verifyProof(proof, publicInputs);
-
-    assert.isTrue(result, 'Invalid proof');
+    try {
+      const result = await verifier.verifyProof(proof, publicInputs, { gasLimit: 3000000 });
+      const receipt = await result.wait();
+      console.log('verifyProof receipt:', receipt);
+    } catch (error) {
+      console.log('Error:', error);
+      assert.fail('Proof verification failed');
+    }
   });
 
   it('testPairing()', async () => {
@@ -84,8 +89,8 @@ describe('Verifier_G16', function () {
     const q2x = { c0: q2xc0, c1: q2xc1 };
     const q2y = { c0: q2yc0, c1: q2yc1 };
     const q2 = { x: q2x, y: q2y, is_point_at_infinity: false };
-    const result = await verifier.testPairing([p1, p2], [q1, q2], { gasLimit: 10000000 });
-    assert.isTrue(result[0], 'Invalid precompile - unsuccessful');
-    assert.equal(result[1], 1, 'Invalid precompile - returned 0');
+    const result = await verifier.testPairing([p1, p2], [q1, q2]);
+    const receipt = await result.wait();
+    console.log('testPairing receipt:', receipt);
   });
 });

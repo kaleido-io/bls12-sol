@@ -19,6 +19,8 @@ import {G1AffineLib, G1ProjectiveLib} from "../g1.sol";
 import {console} from "hardhat/console.sol";
 
 contract TestG1Lib {
+    bool public lastSuccess = false;
+
     function fromAffine(
         CommonLib.G1Affine memory p
     ) public pure returns (CommonLib.G1Projective memory) {
@@ -50,6 +52,14 @@ contract TestG1Lib {
         uint256 scalar
     ) public view returns (CommonLib.G1Projective memory) {
         return G1ProjectiveLib.mulByScalar(p, scalar);
+    }
+
+    function mulByScalarTx(
+        CommonLib.G1Projective memory p,
+        uint256 scalar
+    ) public returns (CommonLib.G1Projective memory result) {
+        result = G1ProjectiveLib.mulByScalar(p, scalar);
+        lastSuccess = true;
     }
 
     function g1ProjectiveDouble(

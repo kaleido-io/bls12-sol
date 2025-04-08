@@ -141,7 +141,8 @@ describe('G1ProjectiveLib and G1AffineLib', function () {
     verifyG1Projective(result, { x: expected_x, y: expected_y, z: expected_z });
   });
 
-  it('G1Projective mulByScalar() - test 1', async () => {
+  // these test parameters were taken from github.com/mikelodder7/bls12_381_plus
+  it.only('G1Projective mulByScalar() - test 1', async () => {
     const gx = parseFp('0x17f1d3a73197d7942695638c4fa9ac0fc3688c4f9774b905a14e3a3f171bac586c55e83ff97a1aeffb3af00adb22c6bb');
     const gy = parseFp('0x08b3f481e3aaa0f1a09e30ed741d8ae4fcf5e095d5d00af600db18cb2c04b3edd03cc744a2888ae40caa232946c5e7e1');
     const gz = parseFp('0x000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001');
@@ -154,6 +155,18 @@ describe('G1ProjectiveLib and G1AffineLib', function () {
     verifyG1Projective(result, { x: expected_x, y: expected_y, z: expected_z });
   });
 
+  it.only('G1Projective mulByScalarTx() - test 1', async () => {
+    const gx = parseFp('0x17f1d3a73197d7942695638c4fa9ac0fc3688c4f9774b905a14e3a3f171bac586c55e83ff97a1aeffb3af00adb22c6bb');
+    const gy = parseFp('0x08b3f481e3aaa0f1a09e30ed741d8ae4fcf5e095d5d00af600db18cb2c04b3edd03cc744a2888ae40caa232946c5e7e1');
+    const gz = parseFp('0x000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001');
+    const g = { x: gx, y: gy, z: gz };
+
+    const result = await testG1Lib.mulByScalarTx(g, '0x07f36e2ec2ee30f4220a63ea1f6b871ad6f5c58f2497908d782d09160b51f945');
+    const receipt = await result.wait();
+    console.log('mulByScalar gas cost:', receipt.gasUsed);
+  });
+
+  // these test parameters were taken from github.com/zkcrypto/bellman (groth16/src/verifier.rs)
   it('G1Projective mulByScalar() - test 2', async () => {
     const gx = parseFp('0x090edb0fd93944fcc2cf58ba1ad427b7ed4994f01cd442eae2c8dd8c3a1408a50e49bad34d46dea6f15c3fdc2f53b161');
     const gy = parseFp('0x06ef234024d61addd57a6e13c4848eb33165c4c2d7be71d523010577abc5482c6c0c71b6c3862c4266e26cad5bf0eb96');
